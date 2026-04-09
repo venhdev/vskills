@@ -293,3 +293,100 @@ Before marking any doc creation or update done, verify:
 - **Speculative content (YAGNI)** — "This might be useful later..." → Delete, **unless it is the declared SSOT for a planned feature** (in that case, move it to the project's TIL or spec doc).
 - **Orphan doc** — No keywords match, no clear audience → Delete or mark stale.
 - **Cross-reference without context** — "See X" with no reason why → Add one-line note explaining why.
+
+---
+
+## 10. Decision Records (ADRs)
+
+Architecture Decision Records document significant design choices. Unlike other doc types, ADRs have a **lifecycle** — they can be superseded, deprecated, or completed. Agents must check status before acting on an ADR.
+
+### When to write an ADR
+
+Create one when a decision has **lasting consequences** across multiple services, packages, or layers:
+- Naming conventions that affect Docker, Traefik, env vars, and clients
+- Authentication strategy (e.g., JWT vs session, PKCE requirements)
+- Protocol choices (REST vs gRPC, GraphQL)
+- Database-per-service vs shared database
+- Event schema conventions
+
+Do **not** create an ADR for:
+- Routine refactors with no architectural impact
+- Single-service implementation details
+- Tooling changes (use a TIL entry instead)
+
+### Lifecycle states
+
+| Status | Meaning | Agent behavior |
+|--------|---------|----------------|
+| `draft` | Under active discussion | Read and contribute if asked |
+| `accepted` | Final decision, in force | Read and follow |
+| `completed` | Fully implemented | Read for historical context |
+| `deprecated` | Outdated but kept for history | Read, do not follow |
+| `superseded` | Replaced by another ADR | Skip entirely, follow `supersededBy` |
+
+### Standard frontmatter
+
+```yaml
+---
+title: [Short descriptive title — noun phrase, not verb phrase]
+type: decision
+status: draft | accepted | completed | deprecated | superseded
+supersededBy: ADR-XXX  # fill only when status is superseded
+created: YYYY-MM-DD
+decided: YYYY-MM-DD    # date the decision was accepted
+deciders: [name, name]  # people or team who made the decision
+---
+```
+
+### Standard structure
+
+```markdown
+## Context
+What problem prompted this decision? What constraints or forces are at play?
+
+## Decision
+What was decided? State the decision clearly and specifically.
+
+## Alternatives considered
+What other options were evaluated? Why were they rejected?
+
+## Consequences
+- **Positive**: What becomes easier or more maintainable?
+- **Negative**: What trade-offs or complications were introduced?
+- **Neutral**: What consequences are still uncertain?
+
+## Status Log
+- YYYY-MM-DD — Draft
+- YYYY-MM-DD — Accepted (decision finalized)
+- YYYY-MM-DD — Completed (fully implemented)
+- YYYY-MM-DD — Superseded by ADR-XXX  ← added only when replaced
+```
+
+### Agent fast-skip rule
+
+> **Before reading any ADR, check `status` in frontmatter first.**
+
+- `draft` → read and contribute
+- `accepted` → read and follow
+- `completed` → read for history context only
+- `deprecated` → read for history, do not follow
+- `superseded` → **skip entirely**, follow the `supersededBy` link instead
+
+### Updating a resolved ADR
+
+When an ADR's status changes:
+
+1. Update the `status` field in frontmatter
+2. Add a new entry to the **Status Log**
+3. If `superseded`, add the `supersededBy` field
+4. For `completed` ADRs, add an **Implementation** section documenting what was built and when
+
+### ADR placement
+
+| Project style | Where ADRs live |
+|---------------|----------------|
+| Monorepo | `docs/architecture/decisions/ADR-001-title.md` |
+| Flat | `docs/decisions/ADR-001-title.md` |
+| Mixed (MemoZen) | `docs/architecture/adr/` for official ADRs; `reports/issues/` for working/resolved ADRs |
+
+> **Canonical ADR location takes priority.** If a doc lives in `reports/issues/` but the project convention is `docs/architecture/adr/`, move it when it reaches `accepted` status. Working drafts may live in `reports/issues/` for faster iteration.
