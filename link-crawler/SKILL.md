@@ -1,5 +1,6 @@
 ---
 name: link-crawler
+icon: icon.svg
 description: >
   Crawl active URLs from user-provided topics and root links, verify they are live (HTTP 200 with real content),
   and output a grouped markdown list of active links. Use this skill whenever the user asks to crawl links,
@@ -54,7 +55,21 @@ This determines the `filter_groups` value in the config. If "all", set to `null`
 
 ### Step 3: Build Config and Run Crawler
 
-Create a JSON config file at `/home/claude/crawl_config.json`:
+The script supports two modes:
+
+**Single-URL mode** (no config file needed — fastest for one-off crawls):
+```bash
+python3 /home/venhuser/proj/personal/vskills/link-crawler/crawl_links.py \
+    --url https://example.com \
+    --depth 2 \
+    --topic "Example Docs" \
+    --investigate \
+    --output results.json \
+    --clean
+```
+
+**Config-file mode** (multi-topic):
+Create a JSON config at `/home/venhuser/proj/personal/vskills/link-crawler/crawl_config.json`:
 
 ```json
 {
@@ -69,24 +84,33 @@ Create a JSON config file at `/home/claude/crawl_config.json`:
 }
 ```
 
-Then run the crawler script:
+Then run:
 
 ```bash
-python3 /path/to/skill/scripts/crawl_links.py --input /home/claude/crawl_config.json --timeout 10 2>/home/claude/crawl_log.txt
+python3 /home/venhuser/proj/personal/vskills/link-crawler/crawl_links.py \
+    --input /home/venhuser/proj/personal/vskills/link-crawler/crawl_config.json \
+    --timeout 10
 ```
 
-The script outputs JSON to stdout. Capture it:
+**Output options:**
+- **`--output FILE` / `-o FILE`** — write JSON to FILE instead of stdout
+- **`--clean`** — delete `--output FILE` before writing (fresh run, no stale data)
+- **`--append`** — append results to FILE as a timestamped envelope (run history, JSONL)
+- **`--investigate`** — stream per-URL events to stderr in real time
+- **`--tree`** — add a live crawl tree to the investigation log (implies `--investigate`)
+- **`-v` / `--verbose`** — DEBUG-level logging (extracted link counts, queue sizes)
+
+**Tip:** combine `--output` + `--clean` to guarantee a clean output file each run:
 
 ```bash
-python3 /path/to/skill/scripts/crawl_links.py --input /home/claude/crawl_config.json --timeout 10 > /home/claude/crawl_results.json 2>/home/claude/crawl_log.txt
+python3 /home/venhuser/proj/personal/vskills/link-crawler/crawl_links.py \
+    --url https://example.com \
+    --output results.json \
+    --clean \
+    --investigate
 ```
 
-The crawl log (stderr) shows progress. If the user is waiting, you can check the log to give status updates.
-
-**Important constraints:**
-- The script caps at 500 links per root URL to prevent runaway crawls
-- Uses 10 concurrent threads with polite delays
-- Checks that pages return HTTP 200 AND have real content (not error pages, empty pages, or placeholder pages)
+The script caps at 500 links per root URL to prevent runaway crawls.
 
 ### Step 4: Present Results
 
