@@ -101,6 +101,25 @@ Use one of these canonical values for the `audience` frontmatter field:
 
 If no standard audience fits, write a concise one-liner (e.g., `"data scientists tuning ML pipelines"`) — but prefer an existing canonical value when possible.
 
+### Tags (Ecosystem Roles)
+
+Use a `tags` array for cross-cutting roles that complement Diátaxis `type`. Common tags:
+
+| Tag | Use when the doc is... | Discovery |
+|-----|------------------------|-----------|
+| `ssot` | The canonical source for a topic — never copy, always link | `grep -E '^tags:'` |
+| `cross-cutting` | Referenced from multiple services or packages | `grep -E '^tags:'` |
+| `draft` | Work-in-progress, not yet stable | `grep -E '^tags:'` |
+| `stale` | Outdated, flagged for review | `grep -E '^tags:'` |
+
+Agents detect tags by scanning for `^tags:` in frontmatter — no hardcoded paths needed.
+
+SSOT-tagged docs should also include a body marker for human scanning:
+
+```markdown
+> **SSOT**: This document is the canonical reference for [topic]. Do not duplicate — link instead.
+```
+
 ---
 
 ## 3. Project Structure Auto-Detection
@@ -232,6 +251,7 @@ title: [Short descriptive title]
 description: [One-sentence summary. Write as a compressed infinitive: "Configure X for Y" or "Deploy to cloud platform." Avoid full sentences — aim for 10–15 words max.]
 type: [tutorial | how-to | reference | explanation]
 audience: [new contributors | developers | api consumers | operators | maintainers]
+tags: []   # e.g., [ssot, cross-cutting] — see Tags section above
 created: [ISO date — e.g., 2026-04-02]
 lastReviewed: [ISO date — e.g., 2026-04-02]
 ---
@@ -274,7 +294,7 @@ Before marking any doc creation or update done, verify:
 | # | Check | How |
 |---|-------|-----|
 | 1 | **Correct type** | Matches its declared type's structure rules? |
-| 2 | **Frontmatter complete** | Has `title`, `description`, `type`, `audience`, `created`, `lastReviewed`? |
+| 2 | **Frontmatter complete** | Has `title`, `description`, `type`, `audience`, `tags`, `created`, `lastReviewed`? |
 | 3 | **No duplication** | Topic already covered elsewhere? Link instead. |
 | 4 | **SSOT-aligned** | Config values → "see [source]". Contracts and specs → linked, not inlined. Never copy from an authoritative source. |
 | 5 | **Right level** | Audience match correct? |
