@@ -279,12 +279,13 @@ When a milestone completes:
 
 | Tier | Method | Scope |
 |------|--------|-------|
-| 1 | Filename scan | Matching or near-matching file names |
+| 1 | Filename scan | Matching or near-matching file names (case-insensitive) |
 | 2 | Title/heading scan | Matching title keywords in all doc titles and first headings |
 | 3 | Full-text scan *(only when ambiguous)* | Core concept in all doc bodies |
 
 - Only after all 3 tiers come back clean → proceed as new doc.
 - If tier 2 or 3 finds a match → link to the existing doc instead of creating a new one.
+- **Topic overlap check (mandatory for Tier 2):** Even if the title doesn't match, check whether the requested doc topic is semantically covered by an existing doc. Example: a request for "Authentication Setup Guide" overlaps with "Auth Implementation Guide" (both about auth) — this is a Tier 2 match. When in doubt, scan the first 200 lines of docs in the same folder for related keywords.
 
 ### Cascade Field Setup
 
