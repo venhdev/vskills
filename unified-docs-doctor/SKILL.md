@@ -101,9 +101,19 @@ A doc is stale when either condition is true:
 for doc in $(find . -name "*.md" -not -path "*/node_modules/*" -not -path "*/dist/*" -not -path "*/build/*"); do
   lastReviewed=$(grep 'lastReviewed:' "$doc" | head -1 | awk '{print $2}')
   if [ -n "$lastReviewed" ]; then
+    # Respect per-doc-type cadence: plans default to 90 days, others to 180
+    cadence=$(grep 'reviewCadence:' "$doc" | head -1 | awk '{print $2}' | tr -d ' ')
+    if [ -z "$cadence" ]; then
+      kind=$(grep 'kind:' "$doc" | head -1)
+      if echo "$kind" | grep -q 'plan'; then
+        cadence=90
+      else
+        cadence=180
+      fi
+    fi
     days=$(( ($(date +%s) - $(date -d "$lastReviewed" +%s)) / 86400 ))
-    if [ $days -gt 180 ]; then
-      echo "STALE: $doc (${days} days)"
+    if [ $days -gt "${cadence:-180}" ]; then
+      echo "STALE: $doc (${days} days, cadence ${cadence})"
     fi
   fi
 done
